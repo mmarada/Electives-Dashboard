@@ -158,11 +158,15 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
                   <a 
                     href={course.syllabusLink ? course.syllabusLink : `https://www.google.com/search?q=UW+Foster+${course.code}+${course.instructor}+syllabus`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors group"
                   >
                     {course.syllabusLink ? "View Syllabus PDF" : "Search Syllabus / Flyer"}
-                    <Info className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                    {course.syllabusLink ? (
+                      <FileText className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                    ) : (
+                      <Info className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                    )}
                   </a>
                   
                   <a 
