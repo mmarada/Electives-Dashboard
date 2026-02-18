@@ -36,6 +36,7 @@ export interface Course {
   prerequisites?: string;
   syllabusLink?: string; // Placeholder link
   syllabus?: Syllabus;
+  courseCatalogLink?: string; // Link to UW Course Catalog
 }
 
 export type DayFilter = 'All' | 'Mon/Wed' | 'Tue/Thu' | 'Evening' | 'Friday';

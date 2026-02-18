@@ -2,9 +2,21 @@
 import { Course, Review } from './types';
 import { COURSE_LINKS } from './links';
 
-// Extracted from Spring 2026 Schedule PDF and mapped with Syllabus OCR data
-// Additional courses added from Catalog (Page 1-8)
-export const courses: Course[] = [
+// Helper to generate UW Catalog Link from course code
+function getCatalogLink(code: string): string | undefined {
+  if (!code) return undefined;
+  const parts = code.split(' ');
+  if (parts.length < 2) return undefined;
+  
+  // Handle cross-listed courses like "ENTRE/FIN" -> "entre"
+  const deptPart = parts[0].split('/')[0]; 
+  const dept = deptPart.toLowerCase();
+  const num = parts[1];
+  
+  return `http://www.washington.edu/students/crscat/${dept}.html#${dept}${num}`;
+}
+
+const rawCourses: Course[] = [
   // --- Spring 2026 Scheduled Courses ---
   { 
     sln: "10151", 
@@ -235,7 +247,7 @@ export const courses: Course[] = [
     instructor: "TBD", 
     room: "PCAR 395", 
     days: "Tue/Thu", 
-    time: "10:30-12:20",
+    time: "10:30-12:20", 
     quarter: "Spring 2026",
     syllabusLink: COURSE_LINKS["17128"],
     syllabus: {
@@ -261,7 +273,7 @@ export const courses: Course[] = [
     instructor: "Van Winkle", 
     room: "PCAR 392", 
     days: "Tue/Thu", 
-    time: "1:30-3:20",
+    time: "1:30-3:20", 
     quarter: "Spring 2026",
     syllabusLink: COURSE_LINKS["10140"],
     syllabus: {
@@ -962,6 +974,12 @@ export const courses: Course[] = [
   { sln: "N/A", code: "QMETH 551", section: "N/A", title: "Modeling with Spreadsheets", credits: 4, instructor: "TBD", room: "TBD", days: "TBD", time: "TBD", quarter: "Catalog", syllabusLink: COURSE_LINKS.QMETH_551 },
   { sln: "N/A", code: "QMETH 600", section: "N/A", title: "Independent Study", credits: 2, instructor: "TBD", room: "TBD", days: "TBD", time: "TBD", quarter: "Catalog", syllabusLink: COURSE_LINKS.QMETH_600 },
 ];
+
+// Inject the generated course catalog link into each course object
+export const courses: Course[] = rawCourses.map(c => ({
+  ...c,
+  courseCatalogLink: getCatalogLink(c.code)
+}));
 
 // Selected reviews extracted from OCR. 
 // Note: Some reviews match Course ID but refer to a specific "Special Topic" (like Angel Investing).

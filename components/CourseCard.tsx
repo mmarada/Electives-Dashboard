@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Course, Review } from '../types';
-import { ChevronDown, ChevronUp, Clock, MapPin, Calendar, BookOpen, GraduationCap, Mail, Info, FileText, CheckCircle, Book, Star, Layers, FileImage, FileInput } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, MapPin, Calendar, BookOpen, GraduationCap, Mail, Info, FileText, CheckCircle, Book, Star, Layers, FileImage, FileInput, ExternalLink } from 'lucide-react';
 import ReviewList from './ReviewList';
 import { courseDetails } from '../data';
 
@@ -203,6 +203,18 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
                       {linkInfo.text}
                       <LinkIcon className="w-4 h-4 ml-2" />
                     </button>
+                  )}
+
+                  {course.courseCatalogLink && (
+                    <a 
+                      href={course.courseCatalogLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors group"
+                    >
+                      UW Catalog
+                      <ExternalLink className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                    </a>
                   )}
                   
                   <a 

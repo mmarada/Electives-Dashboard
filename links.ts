@@ -13,7 +13,7 @@ export const COURSE_LINKS: Record<string, string> = {
   "17132": "/syllabi/MKTG_568_Pricing.pdf",
   "14536": "/syllabi/FIN_579_International_Finance.pdf",
   "17128": "/syllabi/MKTG_560_Consumer_Insights.pdf",
-  "10140": "/syllabi/ACCTG_510_Financial_Statement_Analysis.pdf",
+  "10140": "https://uwnetid.sharepoint.com/:b:/r/sites/foster_mba_students/Shared%20Documents/Syllabi-%20Electives/ACCTG510_SPR2025.pdf?csf=1&web=1&e=u1NLpa",
   "14065": "/syllabi/ENTRE_FIN_557_Entrepreneurial_Finance.pdf",
   "21090": "/flyers/FIN_579_Climate_Risk.pdf",
   "17048": "/syllabi/MGMT_545_High_Performance.pdf",
@@ -47,7 +47,7 @@ export const COURSE_LINKS: Record<string, string> = {
 
   // --- Catalog / Unscheduled Courses (Key = Descriptive ID) ---
   // Page 1
-  "ACCTG_510": "/syllabi/ACCTG_510_Financial_Statement_Analysis.pdf",
+  "ACCTG_510": "https://uwnetid.sharepoint.com/:b:/r/sites/foster_mba_students/Shared%20Documents/Syllabi-%20Electives/ACCTG510_SPR2025.pdf?csf=1&web=1&e=u1NLpa",
   "ACCTG_579_Alphanomics": "/syllabi/ACCTG_579_Alphanomics.pdf",
   "ACCTG_579_Sustainability": "/flyers/ACCTG_579_Sustainability.pdf", // Flyer
   "ACCTG_579_Race": "/syllabi/ACCTG_579_Race_Culture.pdf",
