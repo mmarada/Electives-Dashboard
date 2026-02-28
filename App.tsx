@@ -2,10 +2,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { courses as staticCourses, reviews as staticReviews } from './data';
 import CourseCard from './components/CourseCard';
-import { Search, Filter, CalendarDays, GraduationCap, Mail, Layers, Database } from 'lucide-react';
+import { Search, Filter, CalendarDays, GraduationCap, Mail, Layers, Database, Vote } from 'lucide-react';
 import { DayFilter, Course, Review } from './types';
 import { supabase } from './supabaseClient';
 import { seedDatabase } from './seedData';
+
+import SpringPoll from './components/SpringPoll';
 
 function App() {
   const [courses, setCourses] = useState<Course[]>(staticCourses);
@@ -16,6 +18,7 @@ function App() {
   const [dayFilter, setDayFilter] = useState<DayFilter>('All');
   const [instructorFilter, setInstructorFilter] = useState('All');
   const [quarterFilter, setQuarterFilter] = useState('Spring 2026');
+  const [isPollOpen, setIsPollOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -178,6 +181,10 @@ function App() {
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
             Explore available electives across quarters. View schedules, download syllabi, and read peer reviews to make informed decisions.
           </p>
+          
+          <div className="mt-6 flex justify-center sm:justify-start">
+            {/* Old button removed */}
+          </div>
         </div>
 
         {/* Controls Section */}
@@ -265,6 +272,9 @@ function App() {
           </div>
         </div>
 
+        {/* Spring Poll Section */}
+        <SpringPoll courses={courses} isOpen={isPollOpen} onClose={() => setIsPollOpen(false)} />
+
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6 px-2">
           <span className="text-sm font-semibold text-gray-500 bg-white/50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">
@@ -341,6 +351,27 @@ function App() {
             )}
          </div>
       </footer>
+
+      {/* Floating Vote Button - High Visibility */}
+      <button
+        onClick={() => setIsPollOpen(true)}
+        className="fixed bottom-6 right-6 z-50 group flex items-center gap-3 bg-gray-900 text-white pl-5 pr-2 py-2 rounded-full shadow-2xl shadow-purple-900/40 hover:shadow-purple-700/50 transition-all duration-300 hover:-translate-y-1 border border-white/10 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 to-indigo-900/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+        
+        <div className="relative flex flex-col items-start mr-1">
+          <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider leading-none mb-0.5 animate-pulse">Action Required</span>
+          <span className="text-sm font-bold text-white leading-none">Vote Spring Electives</span>
+        </div>
+        
+        <div className="relative bg-gradient-to-br from-purple-500 to-indigo-600 p-3 rounded-full group-hover:scale-110 transition-transform shadow-inner border border-white/20">
+          <Vote className="w-5 h-5 text-white" />
+          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-gray-900"></span>
+          </span>
+        </div>
+      </button>
     </div>
   );
 }
