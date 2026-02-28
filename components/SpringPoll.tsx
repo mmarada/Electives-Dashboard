@@ -123,28 +123,30 @@ const SpringPoll: React.FC<SpringPollProps> = ({ courses, isOpen, onClose }) => 
       <div className="relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 border-l border-gray-100">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold flex items-center gap-2">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 sm:p-6 text-white shrink-0 relative">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors flex items-center justify-center z-10"
+            aria-label="Close poll"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" strokeWidth={2.5} />
+          </button>
+          
+          <div className="flex items-center justify-between mb-2 pr-10">
+            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
               {showResults ? <BarChart2 className="w-5 h-5" /> : <Vote className="w-5 h-5" />}
               {showResults ? 'Poll Results' : 'Spring Electives Poll'}
             </h2>
-            <button 
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors -mr-2"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
-          <p className="text-purple-100 text-sm leading-relaxed">
+          <p className="text-purple-100 text-xs sm:text-sm leading-relaxed pr-8">
             {showResults 
               ? "See what your peers are taking this Spring!" 
-              : "Vote for the courses you took (or plan to take) this Spring! (Max 8 credits)"}
+              : "Vote for the courses you took (or plan to take) this Spring!"}
           </p>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
           {showResults ? (
             <>
               <PollResults courses={springCourses} />
@@ -166,7 +168,7 @@ const SpringPoll: React.FC<SpringPollProps> = ({ courses, isOpen, onClose }) => 
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {springCourses.map(course => {
                   const isSelected = selectedCourses.includes(course.code);
                   const credits = parseInt(course.credits.toString());
@@ -176,34 +178,35 @@ const SpringPoll: React.FC<SpringPollProps> = ({ courses, isOpen, onClose }) => 
                       key={course.code}
                       onClick={() => !hasVoted && toggleCourse(course.code, credits)}
                       className={`
-                        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                        relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-between gap-3
                         ${isSelected 
-                          ? 'border-purple-500 bg-purple-50 shadow-md' 
+                          ? 'border-purple-500 bg-purple-50 shadow-sm' 
                           : 'border-gray-100 hover:border-purple-200 hover:bg-gray-50'
                         }
                         ${hasVoted ? 'opacity-60 cursor-default' : ''}
                       `}
                     >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-bold text-gray-900 text-sm">{course.code}</span>
-                        <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                          {credits} Cr
-                        </span>
-                      </div>
-                      <h3 className="text-sm text-gray-700 font-medium leading-tight line-clamp-2 mb-2">
-                        {course.title}
-                      </h3>
-                      <div className="text-xs text-gray-500 flex items-center gap-1">
-                        <span className="truncate">{course.instructor}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-bold text-gray-900 text-xs">{course.code}</span>
+                          <span className="text-[10px] font-medium bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded-md">
+                            {credits} Cr
+                          </span>
+                        </div>
+                        <h3 className="text-xs text-gray-700 font-medium leading-tight truncate">
+                          {course.title}
+                        </h3>
                       </div>
                       
-                      {isSelected && (
-                        <div className="absolute top-2 right-2">
+                      <div className="shrink-0 flex items-center justify-center w-5 h-5">
+                        {isSelected ? (
                           <div className="w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center">
                             <CheckCircle className="w-3 h-3 text-white" />
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -216,14 +219,7 @@ const SpringPoll: React.FC<SpringPollProps> = ({ courses, isOpen, onClose }) => 
         {!showResults && (
           <div className="p-6 border-t border-gray-100 bg-gray-50 shrink-0">
             <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-medium text-gray-600">Selected Credits:</span>
-                <span className={`font-bold text-lg ${totalCredits > 8 ? 'text-red-600' : 'text-purple-600'}`}>
-                  {totalCredits} <span className="text-gray-400 text-sm font-normal">/ 8</span>
-                </span>
-              </div>
-              
-              <div className="space-y-4 mb-6 pt-4 border-t border-gray-100">
+              <div className="space-y-4 mb-6 pt-2">
                 <div>
                   <label htmlFor="studentName" className="block text-sm font-bold text-gray-700 mb-1.5">
                     Your Name <span className="text-gray-400 font-normal text-xs">(Optional)</span>
