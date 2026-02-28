@@ -28,7 +28,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
         Student Feedback ({reviews.length})
       </h3>
       
-      <div className="grid gap-4 transition-all duration-300 ease-in-out">
+      <div className={`grid gap-4 transition-all duration-300 ease-in-out ${showAll ? 'max-h-[500px] overflow-y-auto pr-2' : ''}`}>
         {displayedReviews.map((review) => (
           <div key={review.id} className="bg-white p-5 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-start gap-3">

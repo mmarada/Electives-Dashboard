@@ -1,34 +1,123 @@
 
-import React, { useState, useMemo } from 'react';
-import { courses, reviews } from './data';
+import React, { useState, useMemo, useEffect } from 'react';
+import { courses as staticCourses, reviews as staticReviews } from './data';
 import CourseCard from './components/CourseCard';
-import { Search, Filter, CalendarDays, GraduationCap, Mail, Layers } from 'lucide-react';
-import { DayFilter } from './types';
+import { Search, Filter, CalendarDays, GraduationCap, Mail, Layers, Database } from 'lucide-react';
+import { DayFilter, Course, Review } from './types';
+import { supabase } from './supabaseClient';
+import { seedDatabase } from './seedData';
 
 function App() {
+  const [courses, setCourses] = useState<Course[]>(staticCourses);
+  const [reviews, setReviews] = useState<Review[]>(staticReviews);
+  const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dayFilter, setDayFilter] = useState<DayFilter>('All');
   const [instructorFilter, setInstructorFilter] = useState('All');
   const [quarterFilter, setQuarterFilter] = useState('Spring 2026');
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Fetch Courses
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('*');
+
+      if (coursesError) throw coursesError;
+
+      // Fetch Reviews
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('*');
+
+      if (reviewsError) throw reviewsError;
+
+      if (coursesData && coursesData.length > 0) {
+        const mappedCourses: Course[] = coursesData.map((c: any) => ({
+          sln: c.sln,
+          code: c.code,
+          section: c.section,
+          title: c.title,
+          credits: c.credits,
+          instructor: c.instructor,
+          room: c.room,
+          days: c.days,
+          time: c.time,
+          quarter: c.quarter,
+          info: c.info,
+          syllabusLink: c.syllabus_link,
+          courseCatalogLink: c.course_catalog_link,
+          syllabus: c.syllabus
+        }));
+        setCourses(mappedCourses);
+      }
+
+      if (reviewsData && reviewsData.length > 0) {
+        const mappedReviews: Review[] = reviewsData.map((r: any) => ({
+          id: r.id,
+          courseId: r.course_id,
+          courseTitleContext: r.course_title_context,
+          professor: r.professor,
+          year: r.year,
+          content: r.content,
+          author: r.author
+        }));
+        setReviews(mappedReviews);
+      }
+
+    } catch (error) {
+      console.error('Error fetching data from Supabase:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSeed = async () => {
+    if (!confirm('This will populate the database with initial data. Continue?')) return;
+    
+    setSeeding(true);
+    const result = await seedDatabase();
+    setSeeding(false);
+    
+    if (result.success) {
+      alert(result.message);
+      fetchData(); // Refresh data
+    } else {
+      alert('Error: ' + result.message);
+    }
+  };
+
   // Derive unique instructors for filter
   const instructors = useMemo(() => {
     const list = Array.from(new Set(courses.map(c => c.instructor)));
     return ['All', ...list.sort()];
-  }, []);
+  }, [courses]);
 
   // Derive unique quarters for filter
   const quarters = useMemo(() => {
     const list = Array.from(new Set(courses.map(c => c.quarter)));
     return ['All', ...list.sort().reverse()]; // Reverse to likely put Spring 2026 first if formatted conveniently, or just sort
-  }, []);
+  }, [courses]);
 
   // Filter Logic
   const filteredCourses = courses.filter(course => {
     const matchesSearch = 
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.sln.includes(searchQuery);
+      course.sln.includes(searchQuery) ||
+      course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesDay = 
       dayFilter === 'All' ? true :
@@ -94,7 +183,7 @@ function App() {
               </div>
               <input
                 type="text"
-                placeholder="Search by course code, title, or SLN..."
+                placeholder="Search by course, SLN, or professor..."
                 className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-150 ease-in-out sm:text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -102,10 +191,10 @@ function App() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full md:w-auto">
               
               {/* Quarter Filter */}
-              <div className="relative group min-w-[140px]">
+              <div className="relative group w-full sm:min-w-[140px]">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Layers className="h-4 w-4 text-gray-500" />
                 </div>
@@ -125,7 +214,7 @@ function App() {
               </div>
 
               {/* Day Filter */}
-              <div className="relative group min-w-[140px]">
+              <div className="relative group w-full sm:min-w-[140px]">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <CalendarDays className="h-4 w-4 text-gray-500" />
                 </div>
@@ -146,7 +235,7 @@ function App() {
               </div>
 
               {/* Instructor Filter */}
-              <div className="relative group min-w-[160px]">
+              <div className="relative group w-full sm:min-w-[160px] col-span-2 sm:col-span-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <GraduationCap className="h-4 w-4 text-gray-500" />
                 </div>
@@ -173,16 +262,18 @@ function App() {
           <span className="text-sm font-medium text-gray-500">
             Showing {filteredCourses.length} courses
           </span>
+          {loading && <span className="text-sm text-purple-600 animate-pulse">Loading data...</span>}
         </div>
 
         {/* Course Grid */}
         <div className="grid grid-cols-1 gap-4">
           {filteredCourses.length > 0 ? (
-            filteredCourses.map((course) => (
+            filteredCourses.map((course, index) => (
               <CourseCard 
-                key={`${course.quarter}-${course.sln}`} 
+                key={`${course.quarter}-${course.sln}-${course.code}-${index}`} 
                 course={course} 
                 reviews={reviews} 
+                onReviewSubmitted={fetchData}
               />
             ))
           ) : (
@@ -212,11 +303,24 @@ function App() {
       <footer className="bg-white border-t border-gray-200 mt-12 py-8">
          <div className="max-w-7xl mx-auto px-4 text-center">
             <p className="text-gray-400 text-sm">
-              &copy; 2026 Foster School of Business - MBA Elective Dashboard. Data updated 2/3/2026.
+              &copy; 
             </p>
             <p className="text-gray-400 text-sm mt-2">
               Created by Mohan Marada, FT MBA '27
             </p>
+            
+            {supabase && (
+              <div className="mt-4">
+                <button 
+                  onClick={handleSeed}
+                  disabled={seeding}
+                  className="text-xs text-gray-300 hover:text-purple-600 transition-colors flex items-center justify-center gap-1 mx-auto"
+                >
+                  <Database className="w-3 h-3" />
+                  {seeding ? 'Seeding...' : 'Seed Database'}
+                </button>
+              </div>
+            )}
          </div>
       </footer>
     </div>

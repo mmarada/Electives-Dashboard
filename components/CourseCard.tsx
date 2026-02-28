@@ -10,17 +10,16 @@ import { supabase } from '../supabaseClient';
 interface CourseCardProps {
   course: Course;
   reviews: Review[];
+  onReviewSubmitted?: () => void;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, reviews, onReviewSubmitted }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'syllabus' | 'reviews'>('overview');
-  const [dynamicReviews, setDynamicReviews] = useState<Review[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(false);
 
   // Filter reviews to match this specific course context better if it's a generic ID
   // For special topics (like ENTRE 579), we try to match the title or instructor if possible
-  const staticReviews = reviews.filter(r => {
+  const filteredReviews = reviews.filter(r => {
     // Exact code match required
     if (r.courseId !== course.code && r.courseId !== course.code.split('/')[0]) return false;
     
@@ -39,45 +38,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
     return true;
   });
 
-  const fetchDynamicReviews = async () => {
-    if (!supabase) return; // Skip if Supabase is not configured
-
-    setLoadingReviews(true);
-    try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('course_id', course.code);
-
-      if (error) throw error;
-
-      if (data) {
-        const formattedReviews: Review[] = data.map((r: any) => ({
-          id: r.id,
-          courseId: r.course_id,
-          courseTitleContext: r.course_title_context,
-          professor: r.professor,
-          year: r.year,
-          content: r.content,
-          author: r.author,
-        }));
-        setDynamicReviews(formattedReviews);
-      }
-    } catch (err) {
-      console.error('Error fetching reviews:', err);
-    } finally {
-      setLoadingReviews(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'reviews' && isExpanded) {
-      fetchDynamicReviews();
-    }
-  }, [activeTab, isExpanded, course.code]);
-
-  const allReviews = [...staticReviews, ...dynamicReviews];
-  const hasReviews = allReviews.length > 0;
+  const hasReviews = filteredReviews.length > 0;
   const description = course.syllabus?.description || courseDetails[course.code] || "No detailed description available. Please contact the instructor for the latest syllabus.";
 
   // Prepare email content
@@ -101,12 +62,12 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
     <div className={`bg-white rounded-xl border transition-all duration-300 ${isExpanded ? 'border-purple-200 shadow-lg ring-1 ring-purple-100' : hasReviews ? 'border-amber-200 hover:border-purple-200 hover:shadow-md' : 'border-gray-200 hover:border-purple-200 hover:shadow-md'}`}>
       {/* Card Header / Summary */}
       <div 
-        className="p-5 cursor-pointer"
+        className="p-4 sm:p-5 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+          <div className="flex-1 min-w-0 w-full">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
                 {course.code}
               </span>
@@ -127,14 +88,14 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
               {hasReviews && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 animate-in fade-in duration-500">
                   <Star className="w-3 h-3 mr-1 fill-amber-400 text-amber-400" />
-                  {allReviews.length} Review{allReviews.length > 1 ? 's' : ''}
+                  {filteredReviews.length} Review{filteredReviews.length > 1 ? 's' : ''}
                 </span>
               )}
             </div>
-            <h3 className="text-lg font-bold text-gray-900 leading-tight truncate pr-4">
+            <h3 className="text-lg font-bold text-gray-900 leading-tight pr-4 break-words">
               {course.title}
             </h3>
-            <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-gray-600">
               <div className="flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-gray-400" />
                 <span className="font-medium">{course.instructor}</span>
@@ -146,12 +107,12 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
             </div>
           </div>
 
-          <div className="text-right flex flex-col items-end gap-1">
-             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+          <div className="flex flex-row sm:flex-col flex-wrap gap-2 sm:gap-1 mt-1 sm:mt-0 w-full sm:w-auto items-center sm:items-end justify-start sm:justify-end text-left sm:text-right">
+             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 whitespace-nowrap">
                 <Calendar className="w-4 h-4 text-purple-500" />
                 {course.days}
              </div>
-             <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+             <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Clock className="w-3 h-3" />
                 {course.time}
              </div>
@@ -175,24 +136,24 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
       {isExpanded && (
         <div className="border-t border-gray-100 bg-gray-50/50 rounded-b-xl animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 bg-white">
+          <div className="flex border-b border-gray-200 bg-white overflow-x-auto">
              <button 
-               className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+               className={`flex-1 min-w-[80px] py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap px-2 ${activeTab === 'overview' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                onClick={() => setActiveTab('overview')}
              >
                Overview
              </button>
              <button 
-               className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'syllabus' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+               className={`flex-1 min-w-[100px] py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap px-2 ${activeTab === 'syllabus' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                onClick={() => setActiveTab('syllabus')}
              >
                Syllabus & Grading
              </button>
              <button 
-               className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'reviews' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+               className={`flex-1 min-w-[80px] py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap px-2 ${activeTab === 'reviews' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                onClick={() => setActiveTab('reviews')}
              >
-               Reviews ({allReviews.length})
+               Reviews ({filteredReviews.length})
              </button>
           </div>
 
@@ -323,12 +284,12 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, reviews }) => {
 
             {activeTab === 'reviews' && (
                <>
-                 <ReviewList reviews={allReviews} />
+                 <ReviewList reviews={filteredReviews} />
                  <ReviewForm 
                    courseId={course.code} 
                    courseTitle={course.title} 
                    defaultProfessor={course.instructor}
-                   onReviewSubmitted={fetchDynamicReviews}
+                   onReviewSubmitted={onReviewSubmitted}
                  />
                </>
             )}
